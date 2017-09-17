@@ -64,7 +64,6 @@ for i in range(0, df.index.size): #pd.isnull checks for nan
 ### Appending into youtubeComments.xml
 f = open('youtubeComments.xml', 'a')
 for i in range(0, df.index.size-1):
-    print(i)
     if (pd.isnull(df.iloc[i].user) == False) and (pd.isnull(df.iloc[i+1].user) == False): #deals with case where there are no replies
         uttid = users.index(df.iloc[i].user)
         s = '\t<s> \n'.expandtabs(4)
@@ -108,5 +107,7 @@ f.close()
 
 # In[ ]:
 
-
+###writing list 
+with open("test.txt", "wb") as fp:
+    pickle.dump(users, fp)
 
