@@ -1,16 +1,22 @@
 
 # coding: utf-8
 
-# In[366]:
+# In[8]:
 
 import pandas as pd
-import re 
+import pickle
+import re
 import sys
 
+with open("test.txt", "rb") as fp:
+    b = pickle.load(fp)
+users = b
 df = pd.read_csv(sys.argv[1])
 
 
-# In[367]:
+# In[9]:
+
+##Data Cleaning cecll
 
 df.iloc[2].user
 df.drop('replies.id', axis=1, inplace=True)
@@ -25,50 +31,20 @@ df.drop('date', axis=1, inplace=True)
 df.rename(columns={'replies.commentText': 'repliesCommentText', 'replies.user': 'repliesUser'}, inplace=True)
 
 
-# In[ ]:
+# In[10]:
 
-
-
-
-# In[368]:
-
-f = open('youtubeComments.xml', 'w')
-f.write('<dialogue> \n')
-f.close()
-
-
-# In[369]:
-
-df['commentText'].str.replace(r"IsHan","")
-df
-
-
-# In[370]:
-
-import re
-for n in re.findall(r'[^\u4e00-\u9fff，。／【】、；‘:""]+',df.iloc[2].commentText):
-    print (n)
-
-
-# In[371]:
+##Chinese comments only
 
 df['commentText'] = df['commentText'].str.replace(r"[^\u4e00-\u9fff，。／【】、；‘:""]+","")
 df['repliesCommentText'] = df['repliesCommentText'].str.replace(r"[^\u4e00-\u9fff，。／【】、；‘:""]+","")
-
-
-
-# In[372]:
-
 df = df[df.commentText != '']
 df = df[df.repliesCommentText != '']
 df = df.reset_index()
 
 
+# In[12]:
 
-# In[393]:
-
-users = []
-
+##appending to users
 for i in range(0, df.index.size): #pd.isnull checks for nan
     if not (pd.isnull(df.iloc[i].user)):
         if df.iloc[i].user in users: #name already exists
@@ -80,10 +56,15 @@ for i in range(0, df.index.size): #pd.isnull checks for nan
             continue
         else:
             users.append(df.iloc[i].repliesUser)
-                
 
+
+
+# In[13]:
+
+### Appending into youtubeComments.xml
 f = open('youtubeComments.xml', 'a')
 for i in range(0, df.index.size-1):
+    print(i)
     if (pd.isnull(df.iloc[i].user) == False) and (pd.isnull(df.iloc[i+1].user) == False): #deals with case where there are no replies
         uttid = users.index(df.iloc[i].user)
         s = '\t<s> \n'.expandtabs(4)
@@ -123,23 +104,6 @@ for i in range(0, df.index.size-1):
         
 
 f.close()
-
-
-# In[ ]:
-
-users
-
-
-# In[384]:
-
-df
-
-
-# In[394]:
-
-import pickle
-with open("test.txt", "wb") as fp:
-    pickle.dump(users, fp)
 
 
 # In[ ]:
