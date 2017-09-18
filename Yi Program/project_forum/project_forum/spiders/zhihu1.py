@@ -76,8 +76,8 @@ class ZhihuSpider(scrapy.Spider):
 
         # 使用手机登录
         params = {
-            "phone_num": "5146622955",
-            "password": "sy1995422",
+            "phone_num": "614591780@qq.com",
+            "password": "sy950422",
             "_xsrf": self._xsrf,
             "captcha": self._captcha
         }
