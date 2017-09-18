@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[366]:
+# In[1]:
 
 import pandas as pd
 import re 
@@ -10,7 +10,7 @@ import sys
 df = pd.read_csv(sys.argv[1])
 
 
-# In[367]:
+# In[2]:
 
 df.iloc[2].user
 df.drop('replies.id', axis=1, inplace=True)
@@ -30,62 +30,50 @@ df.rename(columns={'replies.commentText': 'repliesCommentText', 'replies.user': 
 
 
 
-# In[368]:
+# In[3]:
 
-f = open('youtubeComments.xml', 'w')
-f.write('<dialogue> \n')
-f.close()
+if (sys.argv[2] == True):
+    f = open('youtubeComments.xml', 'w')
+    f.write('<dialogue> \n')
+    f.close()
 
 
-# In[369]:
+# In[4]:
 
 df['commentText'].str.replace(r"IsHan","")
 df
 
 
-# In[370]:
+# In[5]:
 
 import re
 for n in re.findall(r'[^\u4e00-\u9fff，。／【】、；‘:""]+',df.iloc[2].commentText):
     print (n)
 
 
-# In[371]:
+# In[6]:
 
-df['commentText'] = df['commentText'].str.replace(r"[^\u4e00-\u9fff，。／【】、；‘:""]+","")
-df['repliesCommentText'] = df['repliesCommentText'].str.replace(r"[^\u4e00-\u9fff，。／【】、；‘:""]+","")
+df['commentText'] = df['commentText'].str.replace(r"[^\u4e00-\u9fff，。／【】、；‘:""\d]+","")
+df['repliesCommentText'] = df['repliesCommentText'].str.replace(r"[^\u4e00-\u9fff，。／【】、；‘:""\d]+","")
 
 
 
-# In[372]:
+# In[7]:
 
 df = df[df.commentText != '']
 df = df[df.repliesCommentText != '']
 df = df.reset_index()
+df
 
 
-
-# In[393]:
+# In[17]:
 
 users = []
-
-for i in range(0, df.index.size): #pd.isnull checks for nan
-    if not (pd.isnull(df.iloc[i].user)):
-        if df.iloc[i].user in users: #name already exists
-            continue
-        else:
-            users.append(df.iloc[i].user)
-    else:
-        if df.iloc[i].repliesUser in users:
-            continue
-        else:
-            users.append(df.iloc[i].repliesUser)
-                
 
 f = open('youtubeComments.xml', 'a')
 for i in range(0, df.index.size-1):
     if (pd.isnull(df.iloc[i].user) == False) and (pd.isnull(df.iloc[i+1].user) == False): #deals with case where there are no replies
-        uttid = users.index(df.iloc[i].user)
+        uttid = 1
         s = '\t<s> \n'.expandtabs(4)
         s += '\t< utt uid=\"'.expandtabs(8)
         s += str(uttid)
@@ -95,7 +83,9 @@ for i in range(0, df.index.size-1):
         s+= '\t</s> \n'.expandtabs(4)
         f.write(s)
     elif (pd.isnull(df.iloc[i+1].user) == True) and (pd.isnull(df.iloc[i].user) == False):
-        uttid = users.index(df.iloc[i].user)
+        users = []
+        users.append(df.iloc[i].user)
+        uttid = 1
         s = '\t<s> \n'.expandtabs(4)
         s += '\t< utt uid=\"'.expandtabs(8)
         s += str(uttid)
@@ -108,13 +98,24 @@ for i in range(0, df.index.size-1):
         a = 0
         
         while((pd.isnull(df.iloc[j].user)==True) and (j<(df.index.size - 1))):
-            uttid = users.index(df.iloc[j].repliesUser)
+            if not (pd.isnull(df.iloc[j].user)):
+                if df.iloc[j].user in users: #name already exists
+                    a = a+1
+                else:
+                    users.append(df.iloc[j].user)
+            else:
+                if df.iloc[j].repliesUser in users:
+                    a = a+1
+                else:
+                    users.append(df.iloc[j].repliesUser)
+            uttid = users.index(df.iloc[j].repliesUser) + 1
             s += '\t< utt uid=\"'.expandtabs(8)
             s += str(uttid)
             s += '\">'
             s += df.iloc[j].repliesCommentText
             s += '</utt>\n'
             j += 1
+            
            
         i = j
         s+= '\t</s> \n'.expandtabs(4)
@@ -125,21 +126,21 @@ for i in range(0, df.index.size-1):
 f.close()
 
 
-# In[ ]:
+# In[10]:
 
 users
 
 
-# In[384]:
+# In[ ]:
 
 df
 
 
-# In[394]:
+# In[ ]:
 
-import pickle
-with open("test.txt", "wb") as fp:
-    pickle.dump(users, fp)
+if (sys.argv[3] == True):
+    f = open('youtubeComments.xml', 'a')
+    f.write('</dialogue>')
 
 
 # In[ ]:
