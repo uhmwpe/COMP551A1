@@ -54,7 +54,7 @@ for n in re.findall(r'[^\u4e00-\u9fff，。／【】、；‘:""]+',df.iloc[2].c
 # In[6]:
 
 df['commentText'] = df['commentText'].str.replace(r"[^\u4e00-\u9fff，。／【】、；‘:""]+","")
-df['repliesCommentText'] = df['repliesCommentText'].str.replace(r"[^\u4e00-\u9fff，。／【】、；‘:""]+","")
+df['repliesCommentText'] = df['repliesCommentText'].str.replace(r"[^\u4e00-\u9fff，。／【】、；‘:""\d]+","")
 
 
 
