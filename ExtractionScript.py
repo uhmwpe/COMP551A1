@@ -72,27 +72,17 @@ users = []
 
 f = open('youtubeComments.xml', 'a')
 for i in range(0, df.index.size-1):
-    if (pd.isnull(df.iloc[i].user) == False) and (pd.isnull(df.iloc[i+1].user) == False): #deals with case where there are no replies
-        uttid = 1
-        s = '\t<s> \n'.expandtabs(4)
-        s += '\t< utt uid=\"'.expandtabs(8)
-        s += str(uttid)
-        s += '\">'
-        s += str(df.iloc[i].commentText)
-        s += '</utt>\n'
-        s+= '\t</s> \n'.expandtabs(4)
-        f.write(s)
-    elif (pd.isnull(df.iloc[i+1].user) == True) and (pd.isnull(df.iloc[i].user) == False):
+    if (pd.isnull(df.iloc[i+1].user) == True) and (pd.isnull(df.iloc[i].user) == False):
         users = []
         users.append(df.iloc[i].user)
         uttid = 1
         s = '\t<s> \n'.expandtabs(4)
-        s += '\t< utt uid=\"'.expandtabs(8)
+        s += '\t<utt uid=\"'.expandtabs(8)
         s += str(uttid)
         s += '\">'
         s += str(df.iloc[i].commentText)
         s += '</utt>\n'
-        if (i<df.index.size - 1):
+        if (i<df.index.size - 1):   
             j = i+1
             
         a = 0
@@ -109,7 +99,7 @@ for i in range(0, df.index.size-1):
                 else:
                     users.append(df.iloc[j].repliesUser)
             uttid = users.index(df.iloc[j].repliesUser) + 1
-            s += '\t< utt uid=\"'.expandtabs(8)
+            s += '\t<utt uid=\"'.expandtabs(8)
             s += str(uttid)
             s += '\">'
             s += df.iloc[j].repliesCommentText
