@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
-from selenium import webdriver
+import pickle
 import scrapy
 import json
+from selenium import webdriver
 import time
 import re
 import os
@@ -26,32 +27,43 @@ class ZhihuSpider(scrapy.Spider):
     _captcha = ""
     # 请求令牌，防止跨站伪造请求
     _xsrf = ""
-
+    def __init__(self):
+        self.driver = webdriver.Chrome('C:/chromedriver.exe')
     # 如果callback不指定，默认调用parse方法
     def parse(self, response):
-#        self.driver = webdriver.Chrome('C:/Users/Yi/PycharmProjects/COMP551A1/Yi Program/project_forum/project_forum/spiders/chromedriver.exe')
-        self.driver = webdriver.Chrome('C:/chromedriver.exe')
+        self.driver.get(response.url)
+        # self.driver.get('https://www.zhihu.com/explore#monthly-hot')
+        time.sleep(60)
+#        self.get_href(response)
+        with open('outfile', 'rb') as fp:
+            collection = pickle.load(fp)
+        for item in collection:
+            self.driver.get(item)
+            self.driver.find_element_by_css_selector('div.zm-meta-panel>a.meta-item.toggle-comment.js-toggleCommentBox').click()
+            time.sleep(60)
+    # 下滑获取更多内容
+    def get_href(self,response):
 
-        self.driver.get('https://www.zhihu.com/explore#monthly-hot')
-        time.sleep(2)
         #a = self.driver.find_element_by_css_selector('div.zm-item-answer>link').get_attribute('href')
-        self.get_more_hots(20)
+        self.refresh_more_hots(90)
         collection = [i.get_attribute('href') for i in self.driver.find_elements_by_css_selector('div.zm-item-answer>link')]
         #a = self.driver.find_element_by_css_selector('div.zm-meta-panel>a.meta-item.toggle-comment.js-toggleCommentBox').click()
-        self.download_href(collection)
-
-        print(".....................................")
-        print(a)
-        print(".....................................")
-
-        self.driver.save_screenshot('screenie.png')
+        #self.download_href(collection)
+        with open('outfile', 'wb') as fp:
+            pickle.dump(collection, fp)
+        thefile = open('test.txt', 'w')
+        for item in collection:
+            thefile.write("%s\n" % item)
+        thefile.close()
         self.driver.close()
-        yield {
-            "url": response.url,
+    def refresh_more_hots(self, times):
+        for i in range(times + 1):
+            for j in range(27):
+                self.driver.execute_script("window.scrollBy(0, 10);")
+                time.sleep(0.01)
+            time.sleep(0.5)
 
-        }
-    # 下滑获取更多内容
-    def get_more_hots(self, times):
+    def click_more_hots(self, times):
         for i in range(times + 1):
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(0.5)

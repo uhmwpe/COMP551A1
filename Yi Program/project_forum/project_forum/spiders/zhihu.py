@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
-
+from selenium import webdriver
+import time
+import pickle
 
 class ZhihuSpider(scrapy.Spider):
-    name = 'zhihu'
+    name = 'zhihu2'
     #allowed_domains = ['https://www.zhihu.com/']
     start_urls = ['https://www.zhihu.com/']
     loginUrl = 'https://www.zhihu.com/#signin'
@@ -16,7 +18,7 @@ class ZhihuSpider(scrapy.Spider):
 
     custom_settings = {
         "COOKIES_ENABLED": True,
-
+        "ROBOTSTXT_OBEY": False,
     }
 
     headers = {
@@ -24,18 +26,18 @@ class ZhihuSpider(scrapy.Spider):
         'www.zhihu.com',
         'Connection':
         'keep-alive',
-       # 'Origin':#not found
-        #'https://www.zhihu.com',
+        'Origin':#not found
+        'https://www.zhihu.com',
         'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.91 Safari/537.36',
         'Content-Type':
         'application/x-www-form-urlencoded; charset=UTF-8',
         'Accept':
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-        #'X-Requested-With': #not found
-        #'XMLHttpRequest',
-        #'Referer':#not found
-        #'https://www.zhihu.com/',
+        'X-Requested-With': #not found
+        'XMLHttpRequest',
+        'Referer':#not found
+        'https://www.zhihu.com/',
         'Accept-Encoding':
         'gzip, deflate, br',
         'Accept-Language':
@@ -85,6 +87,15 @@ class ZhihuSpider(scrapy.Spider):
 
 
     }
+    def parse(self, response):
+        thefile = open('body.txt', 'w')
+        thefile.write(response)
+        print('...........................')
+        print(response)
+        thefile.close()
+  #      self.driver = webdriver.Chrome('C:/chromedriver.exe')
+   #     self.driver.get(response.url)
+   #     self.driver.save_screenshot('screenie.png')
 
     def start_requests(self):
         return [
@@ -140,20 +151,8 @@ class ZhihuSpider(scrapy.Spider):
         else:
             print(jdict['error'])
 
-    def parse(self, response):
-        with open('zhihu.json', 'a') as fd:
-            fd.write(response.body)
-        jdict = json.loads(response.body)
-        jdatas = jdict['data']
-        for entry in jdatas:
-            entry['pid'] = entry['id']
-            yield entry
 
-        jpaging = jdict['paging']
-        self.curFeedId += len(jdatas)
-        if jpaging['is_end'] == False and self.curFeedId < 50:
-            self.nextFeedUrl = jpaging['next']
-            yield self.next_request(response)
+
 
     def next_request(self, response):
         return scrapy.http.FormRequest(
@@ -162,3 +161,4 @@ class ZhihuSpider(scrapy.Spider):
             meta={'cookiejar': response.meta['cookiejar']},
             headers=self.headers,
             callback=self.parse)
+
