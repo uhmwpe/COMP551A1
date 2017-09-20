@@ -29,12 +29,16 @@ class ZhihuSpider(scrapy.Spider):
 
     # 如果callback不指定，默认调用parse方法
     def parse(self, response):
-        self.driver = webdriver.Chrome('C:/Users/Yi/PycharmProjects/COMP551A1/Yi Program/project_forum/project_forum/spiders/chromedriver.exe')
-        self.driver.get('https://www.zhihu.com/explore#daily-hot')
+#        self.driver = webdriver.Chrome('C:/Users/Yi/PycharmProjects/COMP551A1/Yi Program/project_forum/project_forum/spiders/chromedriver.exe')
+        self.driver = webdriver.Chrome('C:/chromedriver.exe')
+
+        self.driver.get('https://www.zhihu.com/explore#monthly-hot')
         time.sleep(2)
         #a = self.driver.find_element_by_css_selector('div.zm-item-answer>link').get_attribute('href')
-        #a = [i.get_attribute('href') for i in self.driver.find_elements_by_css_selector('div.zm-item-answer>link')]
-        a = self.driver.find_element_by_css_selector('div.zm-meta-panel>a.meta-item.toggle-comment.js-toggleCommentBox').click()
+        self.get_more_hots(20)
+        collection = [i.get_attribute('href') for i in self.driver.find_elements_by_css_selector('div.zm-item-answer>link')]
+        #a = self.driver.find_element_by_css_selector('div.zm-meta-panel>a.meta-item.toggle-comment.js-toggleCommentBox').click()
+        self.download_href(collection)
 
         print(".....................................")
         print(a)
@@ -46,7 +50,11 @@ class ZhihuSpider(scrapy.Spider):
             "url": response.url,
 
         }
-
+    # 下滑获取更多内容
+    def get_more_hots(self, times):
+        for i in range(times + 1):
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(0.5)
     # 爬取内容
     def parse_detail(self, response):
         pass
@@ -79,6 +87,11 @@ class ZhihuSpider(scrapy.Spider):
                 callback=self.login
             )
         ]
+    def download_href(self, hrefs):
+        path = os.path.abspath(os.path.dirname(__file__))
+        with open(path + "/href.txt", "wb") as f:
+            f.write(hrefs)
+            f.close()
 
     # 登录，只做了邮箱登录一样
     def login(self, response):
