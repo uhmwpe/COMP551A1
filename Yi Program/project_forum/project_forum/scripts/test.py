@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
 import pickle
+import time
 import requests
 class conversation_builder():
 
@@ -45,7 +46,7 @@ class conversation_builder():
             follower_list = [followers for index, followers in enumerate(self.follower) if author in followers]
             conversation_id = [index for index, followers in enumerate(self.follower) if author in followers]
             followers = str(follower_list).strip('[]').split()
-            uid = followers.index(author) + 2 # +1 compensate for 0, +1 compensate for starter, totally +2
+            uid = followers.index(author) + 1 # index 0 is already compensated by [] as the first element, +1 compensate for starter, totally +2
         else: #this means that the author is a new follower
             # is this author replying to a starter?
             if not any(listener in people for people in self.starter): #Find the place of this conversation by listener
@@ -57,36 +58,37 @@ class conversation_builder():
             else:
                 self.follower.append(" " + author)
             self.total_follower[conversation_id] += 1
-            uid = self.total_follower[conversation_id] + 2  # +1 compensate for new follower, +1 compensate for starter, totally +2
+            uid = self.total_follower[conversation_id] + 1  #  +1 compensate for starter, totally +2
             # check if this new follower is the first new follower
 
         self.conversations[conversation_id] += "<s><utt uid=\"%s\">" %uid + text + "</utt>"
 
 
-
-
-
-
-
-
 user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36'
 headers = {'User-Agent': user_agent,
            }
+database_size = 0
+for ans_id in range(0,3):
+    url = "https://www.zhihu.com/node/AnswerCommentListV2?params=%7B%22answer_id%22%3A%22"+str(ans_id)+"%22%7D"
+    cb = conversation_builder()
+    r = requests.get(url, headers=headers, allow_redirects = True)
+    soup = BeautifulSoup(r.text,"lxml")
+    soup.prettify()
+    for item in soup.select(".zm-item-comment"):
+        try:
+            author = item.select(".author-link")[0].text
+            cb.add(item)
+        except: pass
 
+    db = open('db.txt', 'a', encoding='utf-8')
+    for text,total_follower in zip(cb.conversations, cb.total_follower):
+        if total_follower > 0:
+            db.write("%s</s>\n" % text)
+            database_size += 1
+    db.close()
+    if database_size >= 2000:
+        print(ans_id)
+        break
+    time.sleep(5)
 
-url = "https://www.zhihu.com/node/AnswerCommentListV2?params=%7B%22answer_id%22%3A%"+"2215184366"+"%22%7D"
-cb = conversation_builder()
-r = requests.get(url, headers=headers, allow_redirects = True)
-soup = BeautifulSoup(r.text,"lxml")
-soup.prettify()
-for item in soup.select(".zm-item-comment"):
-    try:
-        author = item.select(".author-link")[0].text
-        cb.add(item)
-    except: pass
-
-db = open('db.txt', 'wt', encoding='utf-8')
-for item in cb.conversations:
-    db.write("%s</s>\n" % item)
-db.close()
 
