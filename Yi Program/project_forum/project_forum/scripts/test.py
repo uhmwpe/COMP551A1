@@ -5,17 +5,19 @@ import time
 import requests
 class conversation_builder():
 
-    user_id = 0  #index holder
-    total_conversations = 0
-    # container for Starter of one conversation
-    starter = []
-    # container for follower of each conversation
-    follower = []
-    # track the total number of follower, if new follower come, easy to identify the uid
-    # excluding starter
-    total_follower = []
-    # container for texts
-    conversations = []
+
+    def __init__(self):
+        self.user_id = 0  # index holder
+        self.total_conversations = 0
+        # container for Starter of one conversation
+        self.starter = []
+        # container for follower of each conversation
+        self.follower = []
+        # track the total number of follower, if new follower come, easy to identify the uid
+        # excluding starter
+        self.total_follower = []
+        # container for texts
+        self.conversations = []
     def add(self,comment):
         try: #is it a reply ?
             listener = comment.select(".author-link")[1].text #if keyword "回复" is not found, then it is not a reply, the next line of code won't be executed
@@ -68,7 +70,7 @@ user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, lik
 headers = {'User-Agent': user_agent,
            }
 database_size = 0
-for ans_id in range(0,99999999):
+for ans_id in range(0,99999999999):
     url = "https://www.zhihu.com/node/AnswerCommentListV2?params=%7B%22answer_id%22%3A%22"+str(ans_id)+"%22%7D"
     cb = conversation_builder()
     r = requests.get(url, headers=headers, allow_redirects = True)
@@ -86,9 +88,12 @@ for ans_id in range(0,99999999):
             db.write("%s</s>\n" % text)
             database_size += 1
     db.close()
+    print(ans_id)
     if database_size >= 2000:
         print(ans_id)
         break
-    time.sleep(5)
+    cb =  None
+    del cb
+    time.sleep(2)
 
 
