@@ -70,7 +70,7 @@ user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, lik
 headers = {'User-Agent': user_agent,
            }
 database_size = 0
-for ans_id in range(0,99999999999):
+for ans_id in range(42215, 99999999999):
     url = "https://www.zhihu.com/node/AnswerCommentListV2?params=%7B%22answer_id%22%3A%22"+str(ans_id)+"%22%7D"
     cb = conversation_builder()
     r = requests.get(url, headers=headers, allow_redirects = True)
@@ -89,11 +89,12 @@ for ans_id in range(0,99999999999):
             database_size += 1
     db.close()
     print(ans_id)
-    if database_size >= 2000:
+    if database_size >= 20000:
         print(ans_id)
         break
     cb =  None
     del cb
     time.sleep(2)
 
+#28538
 
